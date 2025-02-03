@@ -3,6 +3,7 @@ const session = require('express-session');
 const path = require('path');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const MongoStore = require('connect-mongo');
 
 // Carrega as variáveis de ambiente
 dotenv.config();
@@ -25,11 +26,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Configuração da sessão
 app.use(session({
-    secret: process.env.ADMIN_CODE,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // Defina como `true` se estiver usando HTTPS
-   
+    secret: process.env.ADMIN_CODE, // Chave secreta para assinar a sessão
+    resave: false, // Não salva a sessão se não houver alterações
+    saveUninitialized: false, // Não cria sessão até que algo seja armazenado
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI, // URL do MongoDB
+        ttl: 14 * 24 * 60 * 60 // Tempo de vida da sessão (14 dias)
+    }),
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // Use cookies seguros em produção
+        httpOnly: true, // Impede acesso via JavaScript
+        maxAge: 14 * 24 * 60 * 60 * 1000 // Duração do cookie (14 dias)
+    }
 }));
 
 // Middleware para passar o usuário para as views
