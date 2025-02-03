@@ -1,0 +1,50 @@
+<%- include('partials/header') %>
+<div class="container mt-5">
+    <!-- Título Principal -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary">Login</h1>
+        <p class="lead text-muted">
+            Insira suas credenciais para acessar o sistema.
+        </p>
+    </div>
+
+    <!-- Formulário de Login -->
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form action="/login" method="POST">
+                        <!-- Campo de Usuário -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label fw-semibold">Usuário</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+
+                        <!-- Campo de Senha -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-semibold">Senha</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+
+                        <!-- Botão de Envio -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+     <div class="row mt-5">
+        <div class="col-md-12 text-center">
+            <% if (!user) { %>
+                <p class="text-muted">Não tem uma conta? <a href="/register" class="text-decoration-none text-primary fw-bold">Registre-se aqui</a>.</p>
+            <% } else { %>
+                <p class="text-muted">Bem-vindo, <span class="fw-bold"><%= user.username %></span>! <a href="/logout" class="text-decoration-none text-danger fw-bold">Sair</a></p>
+            <% } %>
+        </div>
+     </div>
+
+</div>
+
+<%- include('partials/footer') %>

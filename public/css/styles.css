@@ -1,0 +1,14 @@
+
+    /* Estilo para o contêiner do QR Code */
+    #qrcodeContainer img {
+        max-width: 100%; /* Garante que a imagem seja responsiva */
+        height: auto; /* Mantém a proporção da imagem */
+        margin: 0 auto; /* Centraliza horizontalmente */
+    }
+
+    /* Ajuste do modal para telas menores */
+    @media (max-width: 768px) {
+        .modal-lg {
+            max-width: 90%; /* Ocupa 90% da largura em telas pequenas */
+        }
+    }

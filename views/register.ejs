@@ -1,0 +1,147 @@
+<%- include('partials/header') %>
+<div class="container mt-5">
+    <!-- Título Principal -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary">Registro</h1>
+        <p class="lead text-muted">
+            Preencha os campos abaixo para criar uma nova conta.
+        </p>
+    </div>
+
+    <!-- Formulário de Registro -->
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form action="/register" method="POST" id="registerForm">
+                        <!-- Campo de Usuário -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label fw-semibold">Usuário</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+
+                        <!-- Campo de Senha -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-semibold">Senha</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+
+                        <!-- Campo de Tipo de Usuário -->
+                        <div class="mb-3">
+                            <label for="role" class="form-label fw-semibold">Tipo de Usuário</label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="user">Usuário Comum</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+
+                        <!-- Campo de Código de Validação (inicialmente oculto) -->
+                        <div id="adminCodeField" class="mb-3 d-none">
+                            <label for="adminCode" class="form-label fw-semibold">Código de Validação</label>
+                            <input type="text" class="form-control" id="adminCode" name="adminCode" placeholder="Insira o código de admin">
+                            <small class="text-muted">O código de validação é necessário para registrar como administrador.</small>
+                        </div>
+
+                        <!-- Botão de Envio -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Registrar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-12 text-center">
+            <% if (!user) { %>
+
+                <p class="text-muted">Já tem uma conta? <a href="/login" class="text-decoration-none text-primary fw-bold">Faça login</a>.</p>
+            <% } else { %>
+                <p class="text-muted">Bem-vindo, <span class="fw-bold"><%= user.username %></span>! <a href="/logout" class="text-decoration-none text-danger fw-bold">Sair</a></p>
+            <% } %>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Lógica para exibir o campo de código de validação
+    document.getElementById('role').addEventListener('change', function () {
+        const adminCodeField = document.getElementById('adminCodeField');
+        if (this.value === 'admin') {
+            adminCodeField.classList.remove('d-none'); // Exibe o campo
+        } else {
+            adminCodeField.classList.add('d-none'); // Oculta o campo
+        }
+    });
+
+    // Validar o formulário antes de enviar
+    document.getElementById('registerForm').addEventListener('submit', async function (event) {
+        event.preventDefault(); // Impede o envio padrão do formulário
+
+        const role = document.getElementById('role').value;
+        const adminCodeInput = document.getElementById('adminCode');
+        const formData = new FormData(this);
+
+        // Verifica se o código de admin foi preenchido caso o tipo de usuário seja "admin"
+        if (role === 'admin' && !adminCodeInput.value) {
+            Swal.fire({
+                title: 'Erro!',
+                text: 'O código de validação é obrigatório para registrar como administrador.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        // Envia os dados via fetch para o servidor
+        try {
+            const response = await fetch('/register', {
+                method: 'POST',
+                body: new URLSearchParams(formData),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            });
+
+            // Verifica se a resposta é redirecionamento
+            if (response.redirected) {
+                window.location.href = response.url; // Redireciona para a página de login
+                return;
+            }
+
+            // Converte a resposta para JSON
+            const result = await response.json();
+
+            if (response.ok) {
+                // Registro bem-sucedido
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Usuário registrado com sucesso!',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = '/login'; // Redireciona para a página de login
+                });
+            } else {
+                // Erro no registro
+                Swal.fire({
+                    title: 'Erro!',
+                    text: result.error || 'Ocorreu um erro ao registrar o usuário.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        } catch (error) {
+            console.error('Erro ao registrar:', error);
+            Swal.fire({
+                title: 'Erro!',
+                text: 'Ocorreu um erro ao tentar registrar. Tente novamente mais tarde.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    });
+</script>
+<%- include('partials/footer') %>

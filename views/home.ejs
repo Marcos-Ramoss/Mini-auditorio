@@ -1,0 +1,52 @@
+<%- include('partials/header') %>
+<div class="container mt-5">
+    <!-- Título Principal -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-dark">Sistema de Reservas do Mini Auditório</h1>
+        <p class="lead text-muted">
+            Gerencie e visualize reservas de forma simples, eficiente e organizada.
+        </p>
+    </div>
+
+    <!-- Seção de Opções -->
+    <div class="row justify-content-center mt-5">
+        <!-- Usuário Comum -->
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="card-title text-dark">Usuário Comum</h2>
+                    <p class="card-text text-muted">
+                        Visualize as reservas disponíveis e planeje suas atividades.
+                    </p>
+                    <a href="/reservas" class="btn btn-outline-dark btn-lg">Ver Reservas</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Administrador -->
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="card-title text-dark">Administrador</h2>
+                    <p class="card-text text-muted">
+                        Gerencie as reservas do auditório com controle total.
+                    </p>
+                    <a href="/reservas" class="btn btn-outline-dark btn-lg">Acessar Admin</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seção de Login/Registro -->
+    <div class="row mt-5">
+        <div class="col-md-12 text-center">
+            <% if (!user) { %>
+                <p class="text-muted">Não tem uma conta? <a href="/register" class="text-decoration-none text-primary fw-bold">Registre-se aqui</a>.</p>
+                <p class="text-muted">Já tem uma conta? <a href="/login" class="text-decoration-none text-primary fw-bold">Faça login</a>.</p>
+            <% } else { %>
+                <p class="text-muted">Bem-vindo, <span class="fw-bold"><%= user.username %></span>! <a href="/logout" class="text-decoration-none text-danger fw-bold">Sair</a></p>
+            <% } %>
+        </div>
+    </div>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,284 @@
+<%- include('partials/header') %>
+<div class="container mt-5">
+    <!-- Título Principal -->
+    <div class="text-center mb-4">
+        <h1 class="display-6 fw-bold text-primary">Reservas</h1>
+        <p class="lead text-muted">
+            Confira abaixo todas as reservas cadastradas no sistema.
+        </p>
+    </div>
+
+    <div class="text-center mb-4">
+        <div class="d-flex flex-wrap justify-content-center gap-3"> <!-- Centraliza e adiciona espaçamento -->
+            <% if (user && user.role === 'admin') { %>
+                <a href="/admin" class="btn btn-primary btn-sm d-block d-md-inline">
+                    <i class="fa-solid fa-plus me-1"></i> Adicionar Nova Reserva
+                </a>
+            <% } %>
+            <!-- Botão para baixar a tabela em PDF -->
+            <button id="downloadPdfBtn" class="btn btn-success btn-sm d-block d-md-inline">
+                <i class="fa-solid fa-download me-1"></i> Baixar Tabela em PDF
+            </button>
+            <!-- Botão para copiar o link da aplicação -->
+            <button id="copyLinkBtn" class="btn btn-info btn-sm d-block d-md-inline" data-clipboard-text="http://localhost:3000">
+                <i class="fa-solid fa-link me-1"></i> Compartilhar Link
+            </button>
+            <!-- Botão para gerar o QR Code -->
+            <button id="generateQrCodeBtn" class="btn btn-secondary btn-sm d-block d-md-inline" data-bs-toggle="modal" data-bs-target="#qrCodeModal">
+                <i class="fa-solid fa-qrcode me-1"></i> Gerar QR Code
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal para exibir o QR Code -->
+<!-- Modal para exibir o QR Code -->
+<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- Centraliza e define tamanho grande -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrCodeModalLabel">QR Code do Link da Aplicação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <!-- Espaço para exibir o QR Code -->
+                <div id="qrcodeContainer" class="d-flex justify-content-center align-items-center"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Tabela de Reservas -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <!-- Tabela Responsiva -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Evento</th>
+                                    <th>Data</th>
+                                    <th>Horário</th>
+                                    <th>Dia</th>
+                                    <th>Turno</th>
+                                    <th>Responsável</th>
+                                    <th>Curso/Setor</th>
+                                    <th>Email</th>
+                                    <th>Materiais</th>
+                                    <% if (user && user.role === 'admin') { %>
+                                        <th>Ações</th>
+                                    <% } %>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (reservas.length > 0) { %>
+                                    <% reservas.forEach(reserva => { %>
+                                        <tr>
+                                            <td><%= reserva.nomeEvento %></td>
+                                            <td><%= reserva.data.toLocaleDateString('pt-BR') %></td>
+                                            <td><%= reserva.horario %></td>
+                                            <td><%= reserva.diaSemana %></td>
+                                            <td><%= reserva.turno %></td>
+                                            <td><%= reserva.responsavel %></td>
+                                            <td><%= reserva.cursoOuSetor || 'Não informado' %></td> <!-- Exibe "Não informado" se nulo -->
+                                            <td><% if (reserva.dataEmail) { %>
+                                                <%= reserva.dataEmail.toLocaleDateString('pt-BR') %>
+                                            <% } else { %>
+                                                Não informado
+                                            <% } %></td>
+                                            <td>
+                                                <!-- Botão para exibir materiais -->
+                                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#materiaisModal_<%= reserva._id %>">
+                                                    Ver Materiais
+                                                </button>
+                                                <!-- Modal para exibir os materiais -->
+                                                <div class="modal fade" id="materiaisModal_<%= reserva._id %>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="exampleModalLabel">Materiais da Reserva: <%= reserva.nomeEvento %></h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <ul class="list-group">
+                                                                    <% reserva.materiais.forEach(material => { %>
+                                                                        <li class="list-group-item">
+                                                                            <strong><%= material.nome %>:</strong> <%= material.quantidade %> unidade(s)
+                                                                        </li>
+                                                                    <% }) %>
+                                                                </ul>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <% if (user && user.role === 'admin') { %>
+                                                <td>
+                                                    <!-- Botão de Editar -->
+                                                    <a href="/admin/editar-reserva/<%= reserva._id %>" class="btn btn-sm btn-warning me-2">
+                                                        <i class="fa-solid fa-edit"></i>
+                                                    </a>
+                                                    <!-- Botão de Excluir -->
+                                                    <button class="btn btn-sm btn-danger" onclick="excluirReserva('<%= reserva._id %>')">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            <% } %>
+                                        </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="<%= user && user.role === 'admin' ? 8 : 7 %>" class="text-center text-muted fst-italic">
+                                            Nenhuma reserva encontrada.
+                                        </td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para Excluir Reserva -->
+<script>
+    function excluirReserva(id) {
+        Swal.fire({
+            title: 'Tem certeza?',
+            text: 'Você não poderá reverter isso!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sim, excluir!',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/reservas/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (response.ok) {
+                        Swal.fire({
+                            title: 'Excluído!',
+                            text: 'A reserva foi excluída com sucesso.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.reload(); // Recarrega a página após a exclusão
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Erro!',
+                            text: 'Ocorreu um erro ao excluir a reserva.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire({
+                        title: 'Erro!',
+                        text: 'Ocorreu um erro ao excluir a reserva.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            }
+        });
+    }
+</script>
+
+<!-- Script para Gerar PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.26/jspdf.plugin.autotable.min.js"></script>
+<script>
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+        // Captura a tabela
+        const table = document.querySelector('.table');
+        const rows = table.querySelectorAll('tr');
+
+        // Cria um array para armazenar os dados da tabela
+        const data = [];
+
+        // Itera sobre as linhas da tabela
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('th, td');
+            const rowData = [];
+            cells.forEach(cell => {
+                rowData.push(cell.textContent.trim());
+            });
+            data.push(rowData);
+        });
+
+        // Configuração do jsPDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Define o título do PDF
+        doc.setFontSize(18);
+        doc.text('Relatório de Reservas', 14, 10);
+
+        // Adiciona os dados da tabela ao PDF
+        doc.autoTable({
+            head: [data[0]], // Cabeçalho da tabela
+            body: data.slice(1), // Corpo da tabela (exclui o cabeçalho)
+            startY: 20, // Posição inicial no eixo Y
+            theme: 'grid', // Estilo da tabela
+            styles: {
+                fontSize: 10, // Tamanho da fonte
+                cellPadding: 1.5, // Espaçamento interno das células
+            },
+        });
+
+        // Salva o PDF
+        doc.save('relatorio_reservas.pdf');
+    });
+</script>
+
+<!-- Biblioteca para gerar QR Code -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<!-- Biblioteca para copiar texto para a área de transferência -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js"></script>
+
+<script>
+    // Script para copiar o link da aplicação
+    new ClipboardJS('#copyLinkBtn');
+
+    document.getElementById('copyLinkBtn').addEventListener('click', () => {
+        Swal.fire({
+            title: 'Link Copiado!',
+            text: 'O link da aplicação foi copiado para a área de transferência.',
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+    });
+
+    // Script para gerar o QR Code
+    document.getElementById('generateQrCodeBtn').addEventListener('click', () => {
+        const qrcodeContainer = document.getElementById('qrcodeContainer');
+        qrcodeContainer.innerHTML = ''; // Limpa o conteúdo anterior
+
+        // URL da aplicação
+        const url = 'http://localhost:8080';
+
+        // Gera o QR Code usando a biblioteca qrcode-generator
+        const qrCode = qrcode(0, 'L'); // Tipo 0 (numérico), nível de correção L (baixo)
+        qrCode.addData(url);
+        qrCode.make();
+
+        // Insere o QR Code no modal com uma escala maior
+        qrcodeContainer.innerHTML = qrCode.createImgTag(10); // Escala 10x para um tamanho maior
+    });
+</script>
+
+<%- include('partials/footer') %>

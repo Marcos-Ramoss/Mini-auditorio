@@ -1,0 +1,200 @@
+<%- include('partials/header') %>
+    <div class="container mt-5">
+        <!-- Título Principal -->
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-dark">Admin - Adicionar Reserva</h1>
+            <p class="lead text-muted">
+                Preencha os campos abaixo para adicionar uma nova reserva ao sistema.
+            </p>
+        </div>
+
+        <!-- Formulário de Adição de Reserva -->
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form id="formReserva">
+                            <!-- Nome do Evento -->
+                            <div class="mb-3">
+                                <label for="nomeEvento" class="form-label fw-semibold">Nome do Evento</label>
+                                <input type="text" class="form-control" id="nomeEvento" name="nomeEvento" required>
+                            </div>
+
+                            <!-- Data -->
+                            <div class="mb-3">
+                                <label for="data" class="form-label fw-semibold">Data</label>
+                                <input type="date" class="form-control" id="data" name="data" required>
+                            </div>
+
+                            <!-- Dia da Semana (campo automático) -->
+                            <div class="mb-3">
+                                <label for="diaSemana" class="form-label fw-semibold">Dia da Semana</label>
+                                <input type="text" class="form-control" id="diaSemana" name="diaSemana" readonly>
+                            </div>
+
+                            <!-- Horário -->
+                            <div class="mb-3">
+                                <label for="horario" class="form-label fw-semibold">Horário</label>
+                                <input type="time" class="form-control" id="horario" name="horario" required>
+                            </div>
+
+                            <!-- Turno -->
+                            <div class="mb-3">
+                                <label for="turno" class="form-label fw-semibold">Turno</label>
+                                <select class="form-select" id="turno" name="turno" required>
+                                    <option value="">Selecione o turno</option>
+                                    <option value="matutino">Matutino</option>
+                                    <option value="vespertino">Vespertino</option>
+                                    <option value="noturno">Noturno</option>
+                                </select>
+                            </div>
+                            <!-- Responsável -->
+                            <div class="mb-3">
+                                <label for="responsavel" class="form-label fw-semibold">Responsável</label>
+                                <input type="text" class="form-control" id="responsavel" name="responsavel" required>
+                            </div>
+                            <!-- Curso ou Setor -->
+                            <div class="mb-3">
+                                <label for="cursoOuSetor" class="form-label fw-semibold">Curso ou Setor</label>
+                                <input type="text" class="form-control" id="cursoOuSetor" name="cursoOuSetor">
+                                <small class="text-muted">Este campo é opcional.</small>
+                            </div>
+
+                            <!-- Data de Recebimento do Email -->
+                            <div class="mb-3">
+                                <label for="dataEmail" class="form-label fw-semibold"> Recebimento Email</label>
+                                <input type="date" class="form-control" id="dataEmail" name="dataEmail">
+                            </div>
+
+                            <!-- Materiais com Quantidade -->
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Materiais</label>
+                                <div id="materiaisContainer">
+                                    <!-- Campo inicial de material -->
+                                    <div class="input-group mb-2">
+                                        <input type="text" class="form-control" placeholder="Material"
+                                            name="materiais[0][nome]">
+                                        <input type="number" class="form-control" placeholder="Quantidade"
+                                            name="materiais[0][quantidade]">
+                                        <button type="button" class="btn btn-danger"
+                                            onclick="removerMaterial(this)">Remover</button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="adicionarMaterial()">Adicionar
+                                    Material</button>
+                            </div>
+
+                            <!-- Botão de Envio -->
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">Adicionar Reserva</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para calcular o dia da semana considerando o fuso horário local
+        function getDayOfWeek(dateString) {
+            const daysOfWeek = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+            const [year, month, day] = dateString.split('-').map(Number);
+            const date = new Date(year, month - 1, day); // Mês começa em 0 (janeiro = 0)
+            return daysOfWeek[date.getDay()];
+        }
+
+        // Adiciona um ouvinte ao campo de data para preencher automaticamente o dia da semana
+        document.getElementById('data').addEventListener('change', function () {
+            const selectedDate = this.value;
+            if (selectedDate) {
+                const dayOfWeek = getDayOfWeek(selectedDate);
+                document.getElementById('diaSemana').value = dayOfWeek;
+            } else {
+                document.getElementById('diaSemana').value = '';
+            }
+        });
+
+        // Função para adicionar um novo campo de material
+        let materialIndex = 1;
+        function adicionarMaterial() {
+            const container = document.getElementById('materiaisContainer');
+            const newMaterial = `
+            <div class="input-group mb-2">
+                <input type="text" class="form-control" placeholder="Material" name="materiais[${materialIndex}][nome]" required>
+                <input type="number" class="form-control" placeholder="Quantidade" name="materiais[${materialIndex}][quantidade]" required>
+                <button type="button" class="btn btn-danger" onclick="removerMaterial(this)">Remover</button>
+            </div>
+        `;
+            container.insertAdjacentHTML('beforeend', newMaterial);
+            materialIndex++;
+        }
+
+        // Função para remover um campo de material
+        function removerMaterial(button) {
+            button.closest('.input-group').remove();
+        }
+
+        // Lógica para enviar os dados do formulário
+        document.getElementById('formReserva').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    // Captura os dados do formulário
+    const nomeEvento = document.getElementById('nomeEvento').value.trim();
+    const data = document.getElementById('data').value;
+    const horario = document.getElementById('horario').value;
+    const turno = document.getElementById('turno').value;
+    const responsavel = document.getElementById('responsavel').value.trim();
+    const diaSemana = document.getElementById('diaSemana').value;
+    const dataEmail = document.getElementById('dataEmail').value; // Certifique-se de capturar o valor do campo dataEmail
+    const cursoOuSetor = document.getElementById('cursoOuSetor').value.trim(); // Captura o valor do campo cursoOuSetor
+
+    // Cria um objeto com os dados do formulário
+    const reservaData = {
+        nomeEvento,
+        data,
+        horario,
+        turno,
+        responsavel,
+        diaSemana,
+        dataEmail: dataEmail || undefined, // Pode ser undefined se não for preenchido
+        cursoOuSetor: cursoOuSetor || null, // Salva como null se não for preenchido
+    };
+
+    try {
+        // Envia os dados para o backend via POST
+        const response = await fetch('/admin/reservas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(reservaData),
+        });
+
+        // Verifica a resposta do servidor
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Erro ao adicionar reserva.');
+        }
+
+        // Exibe uma mensagem de sucesso
+        Swal.fire({
+            title: 'Sucesso!',
+            text: 'Reserva adicionada com sucesso.',
+            icon: 'success',
+            confirmButtonText: 'OK',
+        }).then(() => {
+            window.location.href = 'reservas'; 
+        });
+    } catch (error) {
+        console.error('Erro ao adicionar reserva:', error);
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message || 'Ocorreu um erro ao adicionar a reserva.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+        });
+    }
+});
+    </script>
+    <%- include('partials/footer') %>

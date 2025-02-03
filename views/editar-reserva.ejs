@@ -1,0 +1,197 @@
+<%- include('partials/header') %>
+    <div class="container mt-5">
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-dark">Editar Reserva</h1>
+            <p class="lead text-muted">Altere os campos abaixo para atualizar a reserva.</p>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <form id="formEditarReserva">
+                            <input type="hidden" name="reservaId" value="<%= reserva._id %>">
+                            <!-- Nome do Evento -->
+                            <div class="mb-3">
+                                <label for="nomeEvento" class="form-label fw-semibold">Nome do Evento</label>
+                                <input type="text" class="form-control" id="nomeEvento" name="nomeEvento"
+                                    value="<%= reserva.nomeEvento %>" required>
+                            </div>
+                            <!-- Data -->
+                            <div class="mb-3">
+                                <label for="data" class="form-label fw-semibold">Data</label>
+                                <input type="date" class="form-control" id="data" name="data"
+                                    value="<%= reserva.data.toISOString().split('T')[0] %>" required>
+                            </div>
+                            <!-- Dia da Semana -->
+                            <div class="mb-3">
+                                <label for="diaSemana" class="form-label fw-semibold">Dia da Semana</label>
+                                <input type="text" class="form-control" id="diaSemana" name="diaSemana"
+                                    value="<%= reserva.diaSemana %>" readonly>
+                            </div>
+                            <!-- Horário -->
+                            <div class="mb-3">
+                                <label for="horario" class="form-label fw-semibold">Horário</label>
+                                <input type="time" class="form-control" id="horario" name="horario"
+                                    value="<%= reserva.horario %>" required>
+                            </div>
+                            <!-- Turno -->
+                            <div class="mb-3">
+                                <label for="turno" class="form-label fw-semibold">Turno</label>
+                                <select class="form-select" id="turno" name="turno" required>
+                                    <option value="">Selecione o turno</option>
+                                    <option value="matutino" <%=reserva.turno==='matutino' ? 'selected' : '' %>>Matutino
+                                    </option>
+                                    <option value="vespertino" <%=reserva.turno==='vespertino' ? 'selected' : '' %>
+                                        >Vespertino</option>
+                                    <option value="noturno" <%=reserva.turno==='noturno' ? 'selected' : '' %>>Noturno
+                                    </option>
+                                </select>
+                            </div>
+                            <!-- Responsável -->
+                            <div class="mb-3">
+                                <label for="responsavel" class="form-label fw-semibold">Responsável</label>
+                                <input type="text" class="form-control" id="responsavel" name="responsavel"
+                                    value="<%= reserva.responsavel %>" required>
+                            </div>
+                            <!-- Curso ou Setor -->
+                            <div class="mb-3">
+                                <label for="cursoOuSetor" class="form-label fw-semibold">Curso ou Setor</label>
+                                <input type="text" class="form-control" id="cursoOuSetor" name="cursoOuSetor"
+                                    value="<%= reserva?.cursoOuSetor || '' %>">
+                                <small class="text-muted">Este campo é opcional.</small>
+                            </div>
+
+                            <!-- Data de Recebimento do Email -->
+                            <div class="mb-3">
+                                <label for="dataEmail" class="form-label fw-semibold">Data de Recebimento do
+                                    Email</label>
+                                <input type="date" class="form-control" id="dataEmail" name="dataEmail"
+                                    value="<%= reserva.dataEmail ? reserva.dataEmail.toISOString().split('T')[0] : '' %>">
+                                <% if (!reserva.dataEmail) { %>
+                                    <small class="text-muted">Não informado</small>
+                                    <% } %>
+                            </div>
+                            <!-- Materiais -->
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Materiais</label>
+                                <div id="materiaisContainer">
+                                    <% reserva.materiais.forEach((material, index)=> { %>
+                                        <div class="input-group mb-2">
+                                            <input type="text" class="form-control" placeholder="Nome do Material"
+                                                name="materiais[nome][]" value="<%= material.nome %>">
+                                            <input type="number" class="form-control" placeholder="Quantidade"
+                                                name="materiais[quantidade][]" value="<%= material.quantidade %>"
+                                                min="1">
+                                            <button type="button" class="btn btn-danger"
+                                                onclick="removerMaterial(this)">Remover</button>
+                                        </div>
+                                        <% }) %>
+                                </div>
+                                <button type="button" class="btn btn-secondary" onclick="adicionarMaterial()">Adicionar
+                                    Material</button>
+                            </div>
+                            <!-- Botão de Envio -->
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">Atualizar Reserva</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para adicionar um novo campo de material
+        function adicionarMaterial() {
+            const container = document.getElementById('materiaisContainer');
+            const newMaterial = document.createElement('div');
+            newMaterial.classList.add('input-group', 'mb-2');
+            newMaterial.innerHTML = `
+            <input type="text" class="form-control" placeholder="Nome do Material" name="materiais[nome][]" required>
+            <input type="number" class="form-control" placeholder="Quantidade" name="materiais[quantidade][]" min="1" required>
+            <button type="button" class="btn btn-danger" onclick="removerMaterial(this)">Remover</button>
+        `;
+            container.appendChild(newMaterial);
+        }
+
+        // Função para remover um campo de material
+        function removerMaterial(button) {
+            const materialRow = button.parentElement;
+            materialRow.remove();
+        }
+
+        // Lógica para enviar os dados do formulário via PUT
+        document.getElementById('formEditarReserva').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const formObject = {};
+
+            // Converte os dados do formulário para um objeto JSON
+            formData.forEach((value, key) => {
+                if (!formObject[key]) {
+                    formObject[key] = value;
+                } else {
+                    if (!Array.isArray(formObject[key])) {
+                        formObject[key] = [formObject[key]];
+                    }
+                    formObject[key].push(value);
+                }
+            });
+
+            // Certifique-se de que os materiais estejam no formato correto
+            if (formObject['materiais[nome][]'] && formObject['materiais[quantidade][]']) {
+                formObject.materiais = {
+                    nome: Array.isArray(formObject['materiais[nome][]'])
+                        ? formObject['materiais[nome][]']
+                        : [formObject['materiais[nome][]']],
+                    quantidade: Array.isArray(formObject['materiais[quantidade][]'])
+                        ? formObject['materiais[quantidade][]']
+                        : [formObject['materiais[quantidade][]']],
+                };
+                delete formObject['materiais[nome][]'];
+                delete formObject['materiais[quantidade][]'];
+            }
+
+            const reservaId = document.querySelector('input[name="reservaId"]').value;
+
+            try {
+                const response = await fetch(`/admin/reservas/${reservaId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formObject),
+                });
+
+                if (response.ok) {
+                    Swal.fire({
+                        title: 'Sucesso!',
+                        text: 'Reserva atualizada com sucesso.',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                    }).then(() => {
+                        window.location.href = '/reservas';
+                    });
+                } else {
+                    const errorData = await response.json();
+                    Swal.fire({
+                        title: 'Erro!',
+                        text: errorData.message || 'Ocorreu um erro ao atualizar a reserva.',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                    });
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                Swal.fire({
+                    title: 'Erro!',
+                    text: 'Ocorreu um erro ao atualizar a reserva.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                });
+            }
+        });
+    </script>
+    <%- include('partials/footer') %>
